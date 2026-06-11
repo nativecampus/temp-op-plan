@@ -1,0 +1,12 @@
+ 1. Workflow creation. A workflow is data: workflow_templates → immutable workflow_template_versions → workflow_stage_definitions. Authored in the template editor or seeded; selected per record by the
+  most-specific-predicate rule; stages are instantiated against the record with the version pinned; rebind is the only permitted change after work starts. Everything a stage requires is configuration
+  on its definition row.
+  2. FSM states. Behaviour modes of the record, registered in code — six lifecycle states for a delivery item. They do not represent work or waiting. Every transition is evaluated by the rule engine:
+  approval_rules rows attach to (entity_type, from_state, to_state); require opens an approval and the transition does not fire until it is granted; exempt permits the transition; no matching rule is a
+  configuration error and the transition is refused.
+  3. Binding. A stage definition may declare fires_fsm_transition — one transition. Completing the stage requests that transition, which the rule engine evaluates. A stage without a binding changes
+  workflow state only. This is the only dependency between workflow progression and lifecycle state.
+  4. Sign-off vs approval. A sign-off is an internal completion criterion: pools on the stage definition, satisfied by workflow_stage_signoffs rows recorded by named internal members. No approval row
+  exists, nothing is routed, no external party is involved. An approval is a row in approvals, routed by approver_role through the approval_target_roles configuration; who may decide it, including the
+  override permission, is itself configuration. Two sources: workflow_template (the stage's approval block) and rule_engine (a transition's require rule). A stage may define a sign-off pool or an
+  approval block, never both.
